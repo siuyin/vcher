@@ -39,11 +39,12 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   final TextEditingController _valController = TextEditingController();
-  final List<String> _items = <String>['a|2.50', 'b|5'];
-  String _val = '';
+  final Cart _cart = Cart();
 
   @override
   void initState() {
+    _cart.val = '';
+    _cart.items = <String>['a|2.50', 'b|5'];
     super.initState();
     restoreState();
   }
@@ -53,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setString('val', _valController.text);
 
     setState(() {
-      _val = _valController.text;
+      _cart.val = _valController.text;
     });
   }
 
@@ -76,8 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Summary(val: _val, items: _items),
-            Text('to do.. $_val, ${_items.toString()}'),
+            Summary(cart: _cart),
+            // Summary(val: _val, items: _items),
+            Text('to do.. ${_cart.val}, ${_cart.items.toString()}'),
           ],
         ),
       ),
@@ -135,16 +137,39 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class Summary extends StatelessWidget {
+  final Cart cart;
   const Summary({
     super.key,
-    required String val,
-    required List<String> items,
-  }) : _items = items, _val = val;
-  final String _val;
-  final List<String> _items;
-
+    required this.cart,
+  });
   @override
   Widget build(BuildContext context) {
-    return Text('Summary $_val : ${_items.toString()}');
+    return Text(
+        'Summary ${cart.val} : ${cart.items.toString()} : remainder ${cart.remainder() ?? ""}');
+  }
+}
+
+class Cart {
+  String val = '';
+  List<String> items = [];
+
+  double? _val() {
+    return double.tryParse(val);
+  }
+
+  double? total() {
+    double sum = 0;
+    for (final item in items) {
+      final part = item.split('|');
+      final itemVal = double.tryParse(part[1]);
+      if (itemVal == null) return null;
+      sum += itemVal;
+    }
+    return sum;
+  }
+
+  double? remainder() {
+    if (_val() == null || total() == null) return null;
+    return (_val()! - total()!);
   }
 }
