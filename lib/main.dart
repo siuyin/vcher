@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => CartModel(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -39,30 +45,26 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   final TextEditingController _valController = TextEditingController();
-  final Cart _cart = Cart();
+  late final CartModel _cart;
 
   @override
   void initState() {
-    _cart.val = '';
+    _cart = context.read<CartModel>();
     _cart.items = <String>['a|2.50', 'b|5'];
     super.initState();
     restoreState();
-
-    setState(() {});
   }
 
   saveState() async {
     final prefs = await _prefs;
     await prefs.setString('val', _valController.text);
-
-    setState(() {
-      _cart.val = _valController.text;
-    });
+    _cart.setVal(_valController.text);
   }
 
   restoreState() async {
     final prefs = await _prefs;
     _valController.text = prefs.getString('val') ?? '0.00';
+    _cart.setVal(_valController.text);
   }
 
   @override
@@ -80,7 +82,9 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Summary(cart: _cart),
-            Text('to do.. ${_cart.val}, ${_cart.items.toString()}'),
+            Consumer<CartModel>(builder: (context, cart, child) {
+              return Text('to do.. ${_cart.val}, ${_cart.items.toString()}');
+            }),
           ],
         ),
       ),
@@ -138,19 +142,22 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class Summary extends StatelessWidget {
-  final Cart cart;
+  final CartModel cart;
   const Summary({
     super.key,
     required this.cart,
   });
   @override
   Widget build(BuildContext context) {
-    return Text(
-        '${cart.items.length} items in cart: remainder: ${cart.remainder() ?? ""}');
+    return Consumer<CartModel>(builder: (context, cart, child) {
+      return Text(
+        '${cart.items.length} items in cart: remainder: ${cart.remainder() ?? ""}',
+      );
+    });
   }
 }
 
-class Cart {
+class CartModel extends ChangeNotifier {
   String val = '';
   List<String> items = [];
 
@@ -172,5 +179,15 @@ class Cart {
   double? remainder() {
     if (_val() == null || total() == null) return null;
     return (_val()! - total()!);
+  }
+
+  setVal(String val) {
+    this.val = val;
+    notifyListeners();
+  }
+
+  clear() {
+    items.clear();
+    notifyListeners();
   }
 }
