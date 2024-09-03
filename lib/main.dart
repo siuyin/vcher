@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -78,14 +79,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Container valueInput(BuildContext context) {
     return Container(
-          width: 144,
-          padding: const EdgeInsets.only(right: 64),
-          child: TextField(
-            decoration: const InputDecoration(labelText: 'Value'),
-            style: Theme.of(context).textTheme.headlineSmall,
-            controller: _valController,
-            onSubmitted: (_) => saveState(),
-          ),
-        );
+      width: 144,
+      padding: const EdgeInsets.only(right: 64),
+      child: TextField(
+        decoration: const InputDecoration(labelText: 'Value'),
+        style: Theme.of(context).textTheme.headlineSmall,
+        controller: _valController,
+        onSubmitted: (_) => saveState(),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          TextInputFormatter.withFunction((old, newV) {
+            if (RegExp(r'^\d*\.?\d*$').hasMatch(newV.text)) {
+              return newV;
+            }
+            return old;
+          }),
+        ],
+      ),
+    );
   }
 }
