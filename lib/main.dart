@@ -39,6 +39,8 @@ class _MyHomePageState extends State<MyHomePage> {
   );
 
   final TextEditingController _valController = TextEditingController();
+  final List<String> _items = <String>['a|2.50', 'b|5'];
+  String _val = '';
 
   @override
   void initState() {
@@ -49,6 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
   saveState() async {
     final prefs = await _prefs;
     await prefs.setString('val', _valController.text);
+
+    setState(() {
+      _val = _valController.text;
+    });
   }
 
   restoreState() async {
@@ -66,36 +72,41 @@ class _MyHomePageState extends State<MyHomePage> {
           valueInput(context),
         ],
       ),
-      body: const Center(
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text('to do..'),
+            Summary(val: _val, items: _items),
+            Text('to do.. $_val, ${_items.toString()}'),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => showDialog(
           context: context,
-          builder: (context) => Dialog(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text("hello"),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Close'),
-                  )
-                ],
-              ),
-            ),
-          ),
+          builder: (context) => addItem(context),
         ),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Dialog addItem(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Add item"),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -111,14 +122,29 @@ class _MyHomePageState extends State<MyHomePage> {
         onSubmitted: (_) => saveState(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          TextInputFormatter.withFunction((old, newV) {
-            if (RegExp(r'^\d*\.?\d*$').hasMatch(newV.text)) {
-              return newV;
+          TextInputFormatter.withFunction((old, neu) {
+            if (RegExp(r'^\d*\.?\d*$').hasMatch(neu.text)) {
+              return neu;
             }
             return old;
           }),
         ],
       ),
     );
+  }
+}
+
+class Summary extends StatelessWidget {
+  const Summary({
+    super.key,
+    required String val,
+    required List<String> items,
+  }) : _items = items, _val = val;
+  final String _val;
+  final List<String> _items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Summary $_val : ${_items.toString()}');
   }
 }
