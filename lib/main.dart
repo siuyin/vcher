@@ -47,6 +47,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _cart.items = <String>['a|2.50', 'b|5'];
     super.initState();
     restoreState();
+
+    setState(() {});
   }
 
   saveState() async {
@@ -78,7 +80,6 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Summary(cart: _cart),
-            // Summary(val: _val, items: _items),
             Text('to do.. ${_cart.val}, ${_cart.items.toString()}'),
           ],
         ),
@@ -145,7 +146,7 @@ class Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-        'Summary ${cart.val} : ${cart.items.toString()} : remainder ${cart.remainder() ?? ""}');
+        '${cart.items.length} items in cart: remainder: ${cart.remainder() ?? ""}');
   }
 }
 
