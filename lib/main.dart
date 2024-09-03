@@ -151,7 +151,7 @@ class Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, cart, child) {
       return Text(
-        '${cart.items.length} items in cart: remainder: ${cart.remainder() ?? ""}',
+        '${cart.items.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
       );
     });
   }
