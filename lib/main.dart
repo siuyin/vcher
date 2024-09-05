@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     _cart = context.read<CartModel>();
-    _cart.items = <String>['a|2.50', 'b|5'];
+    _cart.itemStr = <String>['a|2.50', 'b|5'];
     super.initState();
     restoreState();
   }
@@ -83,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Summary(cart: _cart),
             Consumer<CartModel>(builder: (context, cart, child) {
-              return Text('to do.. ${_cart.val}, ${_cart.items.toString()}');
+              return Text('to do.. ${_cart.val}, ${_cart.itemStr.toString()}');
             }),
           ],
         ),
@@ -151,7 +151,7 @@ class Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, cart, child) {
       return Text(
-        '${cart.items.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
+        '${cart.itemStr.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
       );
     });
   }
@@ -159,26 +159,64 @@ class Summary extends StatelessWidget {
 
 class CartModel extends ChangeNotifier {
   String val = '';
-  List<String> items = [];
+  List<String> itemStr = [];
+  List<ItemModel> items = [];
 
   double? _val() {
     return double.tryParse(val);
   }
 
-  double? total() {
-    double sum = 0;
-    for (final item in items) {
+  parseItemStr() {
+    for (final item in itemStr) {
       final part = item.split('|');
       final itemVal = double.tryParse(part[1]);
-      if (itemVal == null) return null;
-      sum += itemVal;
+      ItemModel im = ItemModel();
+      im.cost = itemVal ?? 0;
+      im.desc = part[1];
+      if (part[2] == 'true') {
+        im.leave = true;
+      }
+      if (itemVal == null) {
+        im.leave = true;
+        im.desc += '-invalid';
+      }
+      items.add(im);
+    }
+  }
+
+  double total() {
+    double sum = 0;
+    for (final item in items) {
+      if (item.leave) continue;
+      sum += item.cost;
     }
     return sum;
   }
 
+  add(String desc, cost) {
+    ItemModel item = ItemModel();
+    item.desc = desc;
+    final itemVal = double.tryParse(cost);
+    item.cost == itemVal;
+    if (itemVal == null) {
+      item.leave = true;
+      item.desc += '-invalid';
+      item.cost = 0;
+    }
+    items.add(item);
+  }
+
+  List<String> dump() {
+    List<String> out = [];
+    for (final item in items) {
+      out.add('${item.desc}|${item.cost.toStringAsFixed(2)}|${item.leave}');
+    }
+    return out;
+  }
+
   double? remainder() {
-    if (_val() == null || total() == null) return null;
-    return (_val()! - total()!);
+    if (_val() == null) return null;
+    return (_val()! - total());
   }
 
   setVal(String val) {
@@ -187,7 +225,13 @@ class CartModel extends ChangeNotifier {
   }
 
   clear() {
-    items.clear();
+    itemStr.clear();
     notifyListeners();
   }
+}
+
+class ItemModel {
+  String desc = '';
+  double cost = 0;
+  bool leave = false;
 }
