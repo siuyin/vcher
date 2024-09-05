@@ -5,7 +5,6 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:vcher/main.dart';
@@ -35,7 +34,7 @@ void main() {
     expect(a.indexOf('boy'), equals(-1));
   });
 
-  test('item parse', () {
+  test('cart item parse', () {
     CartModel ct = CartModel();
     ct.val = '10';
     ct.itemStr = <String>['a|1.5|false', 'b|2|true', 'c|2.5|false'];
@@ -44,5 +43,18 @@ void main() {
     const eps = 0.001;
     expect(ct.total(), closeTo(4, eps));
     expect(ct.remainder(), closeTo(10 - 4, eps));
+  });
+
+
+  test('item add to cart',(){
+    var ct = CartModel();
+    ct.add('a','1.5');
+    final list = ct.dump();
+
+    expect(list.length, equals(1));
+    expect(list[0],equals('a|1.50|false'));
+
+    const delta=0.001;
+    expect(ct.total(),closeTo(1.5, delta));
   });
 }

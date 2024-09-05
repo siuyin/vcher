@@ -197,13 +197,15 @@ class CartModel extends ChangeNotifier {
     ItemModel item = ItemModel();
     item.desc = desc;
     final itemVal = double.tryParse(cost);
-    item.cost == itemVal;
+    item.cost = itemVal ?? 0;
     if (itemVal == null) {
       item.leave = true;
       item.desc += '-invalid';
       item.cost = 0;
     }
     items.add(item);
+    
+    notifyListeners();
   }
 
   List<String> dump() {
