@@ -49,15 +49,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    _cart = context.read<CartModel>();
-    _cart.itemStr = <String>['a|2.50', 'b|5'];
     super.initState();
+    _cart = context.read<CartModel>();
     restoreState();
   }
 
   saveState() async {
     final prefs = await _prefs;
     await prefs.setString('val', _valController.text);
+    await prefs.setStringList('items', _cart.dump());
     _cart.setVal(_valController.text);
   }
 
@@ -65,12 +65,23 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await _prefs;
     _valController.text = prefs.getString('val') ?? '0.00';
     _cart.setVal(_valController.text);
+    _cart.itemStr = prefs.getStringList('items') ?? [];
+    _cart.parseItemStr();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: PopupMenuButton(
+          onSelected: (item) => onSelected(context, item),
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 0,
+              child: Text('Empty Cart'),
+            ),
+          ],
+        ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
@@ -83,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Summary(cart: _cart),
             Consumer<CartModel>(builder: (context, cart, child) {
-              return Text('to do.. ${_cart.val}, ${_cart.itemStr.toString()}');
+              return Text('to do.. ${_cart.val}, ${_cart.dump().toString()}');
             }),
           ],
         ),
@@ -98,7 +109,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void onSelected(context, item) {
+    switch (item) {
+      case 0:
+        _cart.empty();
+        saveState();
+        break;
+    }
+  }
+
   Dialog addItem(BuildContext context) {
+    final cart = Provider.of<CartModel>(context, listen: false);
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -106,12 +127,27 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text("Add item"),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            )
+            Align(
+              alignment: AlignmentDirectional.bottomEnd,
+              child: SizedBox(
+                width: 168,
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        saveState();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Close'),
+                    ),
+                    TextButton(
+                      onPressed: () => cart.add('a', '2.50'),
+                      child: const Text('Add item'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -151,7 +187,7 @@ class Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, cart, child) {
       return Text(
-        '${cart.itemStr.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
+        '${cart.items.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
       );
     });
   }
@@ -172,7 +208,7 @@ class CartModel extends ChangeNotifier {
       final itemVal = double.tryParse(part[1]);
       ItemModel im = ItemModel();
       im.cost = itemVal ?? 0;
-      im.desc = part[1];
+      im.desc = part[0];
       if (part[2] == 'true') {
         im.leave = true;
       }
@@ -182,6 +218,7 @@ class CartModel extends ChangeNotifier {
       }
       items.add(im);
     }
+    notifyListeners();
   }
 
   double total() {
@@ -204,7 +241,7 @@ class CartModel extends ChangeNotifier {
       item.cost = 0;
     }
     items.add(item);
-    
+
     notifyListeners();
   }
 
@@ -226,8 +263,10 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  clear() {
+  empty() {
     itemStr.clear();
+    items.clear();
+    remainder();
     notifyListeners();
   }
 }
