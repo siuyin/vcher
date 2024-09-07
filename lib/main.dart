@@ -127,31 +127,35 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text("Add item"),
-            Align(
-              alignment: AlignmentDirectional.bottomEnd,
-              child: SizedBox(
-                width: 168,
-                child: Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        saveState();
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Close'),
-                    ),
-                    TextButton(
-                      onPressed: () => cart.add('a', '2.50'),
-                      child: const Text('Add item'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            addItemDialogControls(context, cart),
           ],
         ),
       ),
     );
+  }
+
+  Align addItemDialogControls(BuildContext context, CartModel cart) {
+    return Align(
+            alignment: AlignmentDirectional.bottomEnd,
+            child: SizedBox(
+              width: 168,
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      saveState();
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Close'),
+                  ),
+                  TextButton(
+                    onPressed: () => cart.add('a', '2.50'),
+                    child: const Text('Add item'),
+                  ),
+                ],
+              ),
+            ),
+          );
   }
 
   Container valueInput(BuildContext context) {
