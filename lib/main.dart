@@ -69,6 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _cart.parseItemStr();
   }
 
+  // Main widget build starts here.
+  // -------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,9 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Summary(cart: _cart),
-            Consumer<CartModel>(builder: (context, cart, child) {
-              return Text('to do.. ${_cart.val}, ${_cart.dump().toString()}');
-            }),
+            MyGridView(cart: _cart),
           ],
         ),
       ),
@@ -162,14 +162,13 @@ class _MyHomePageState extends State<MyHomePage> {
       CartModel cart,
       TextEditingController itemController,
       TextEditingController costController) {
-
     var closeButton = TextButton(
       onPressed: () {
         Navigator.pop(context);
       },
       child: const Text('Close'),
     );
-    
+
     var addButton = TextButton(
       onPressed: () {
         cart.add(itemController.text, costController.text);
@@ -228,6 +227,25 @@ class Summary extends StatelessWidget {
   }
 }
 
+class MyGridView extends StatelessWidget {
+  final CartModel cart;
+  const MyGridView({super.key, required this.cart});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CartModel>(builder: (context, cart, child) {
+      return SizedBox(
+        height: 200,
+        child: GridView.count(
+          crossAxisCount: 3,
+          childAspectRatio: 2,
+          children: itemWidgets(context, cart),
+        ),
+      );
+    });
+  }
+}
+
 class CartModel extends ChangeNotifier {
   String val = '';
   List<String> itemStr = [];
@@ -235,6 +253,10 @@ class CartModel extends ChangeNotifier {
 
   double? _val() {
     return double.tryParse(val);
+  }
+
+  repaint() {
+    notifyListeners();
   }
 
   parseItemStr() {
@@ -310,6 +332,14 @@ class ItemModel {
   String desc = '';
   double cost = 0;
   bool leave = false;
+
+  toggle() {
+    if (leave) {
+      leave = false;
+    } else {
+      leave = true;
+    }
+  }
 }
 
 TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
@@ -317,4 +347,25 @@ TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
     return neu;
   }
   return old;
+}
+
+List<Widget> itemWidgets(BuildContext context, CartModel cart) {
+  var outp = <Widget>[];
+  for (final i in cart.items) {
+    outp.add(
+      InkWell(
+        onTap: () {
+          i.toggle();
+          cart.repaint();
+        },
+        child: Card(
+          color: i.leave
+              ? Colors.red[50]
+              : Theme.of(context).colorScheme.surfaceContainer,
+          child: Text('${i.desc} ${i.leave}\n${i.cost}'),
+        ),
+      ),
+    );
+  }
+  return outp;
 }
