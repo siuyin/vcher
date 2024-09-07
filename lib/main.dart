@@ -222,6 +222,18 @@ class Summary extends StatelessWidget {
     return Consumer<CartModel>(builder: (context, cart, child) {
       return Text(
         '${cart.items.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
+        style: Theme.of(context)
+            .textTheme
+            .copyWith(
+              bodyLarge: TextStyle(
+                fontSize: 20,
+                color: remainderColor(context, cart),
+              ),
+            )
+            .bodyLarge,
+        // style: TextStyle(
+        //   color: remainderColor(context, cart),
+        // ),
       );
     });
   }
@@ -368,4 +380,11 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
     );
   }
   return outp;
+}
+
+Color remainderColor(BuildContext context, CartModel cart) {
+  if (cart.remainder()! < 0) {
+    return Theme.of(context).colorScheme.error;
+  }
+  return Theme.of(context).colorScheme.inverseSurface;
 }
