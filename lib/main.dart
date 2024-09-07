@@ -120,42 +120,55 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Dialog addItem(BuildContext context) {
     final cart = Provider.of<CartModel>(context, listen: false);
+
+    final itemController = TextEditingController();
+    final costController = TextEditingController();
+
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Add item"),
-            addItemDialogControls(context, cart),
+            TextField(
+              decoration: const InputDecoration(labelText: 'item'),
+              controller: itemController,
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'cost'),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: const [
+                TextInputFormatter.withFunction(priceInputFormatter),
+              ],
+              controller: costController,
+            ),
+            Align(
+              alignment: AlignmentDirectional.bottomEnd,
+              child: SizedBox(
+                width: 168,
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        saveState();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Close'),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          cart.add(itemController.text, costController.text),
+                      child: const Text('Add item'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Align addItemDialogControls(BuildContext context, CartModel cart) {
-    return Align(
-            alignment: AlignmentDirectional.bottomEnd,
-            child: SizedBox(
-              width: 168,
-              child: Row(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      saveState();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Close'),
-                  ),
-                  TextButton(
-                    onPressed: () => cart.add('a', '2.50'),
-                    child: const Text('Add item'),
-                  ),
-                ],
-              ),
-            ),
-          );
   }
 
   Container valueInput(BuildContext context) {
@@ -168,13 +181,8 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _valController,
         onSubmitted: (_) => saveState(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          TextInputFormatter.withFunction((old, neu) {
-            if (RegExp(r'^\d*\.?\d*$').hasMatch(neu.text)) {
-              return neu;
-            }
-            return old;
-          }),
+        inputFormatters: const [
+          TextInputFormatter.withFunction(priceInputFormatter),
         ],
       ),
     );
@@ -279,4 +287,11 @@ class ItemModel {
   String desc = '';
   double cost = 0;
   bool leave = false;
+}
+
+TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
+  if (RegExp(r'^\d*\.?\d*$').hasMatch(neu.text)) {
+    return neu;
+  }
+  return old;
 }
