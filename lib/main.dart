@@ -87,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Summary(cart: _cart),
-            MyGridView(cart: _cart),
+            MyGridView(context, cart: _cart),
           ],
         ),
       ),
@@ -220,34 +220,35 @@ class Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, cart, child) {
-      return Text(
-        '${cart.items.length} items in cart: remainder: ${cart.remainder()?.toStringAsFixed(2) ?? ""}',
-        style: Theme.of(context)
-            .textTheme
-            .copyWith(
-              bodyLarge: TextStyle(
-                fontSize: 20,
-                color: remainderColor(context, cart),
-              ),
-            )
-            .bodyLarge,
-        // style: TextStyle(
-        //   color: remainderColor(context, cart),
-        // ),
-      );
+      return remainderText(cart, context);
     });
+  }
+
+  Text remainderText(CartModel cart, BuildContext context) {
+    return Text(
+      '${cart.activeItems()} items: \$${cart.total()}: rem:${cart.remainder()?.toStringAsFixed(2) ?? ""}',
+      style: Theme.of(context)
+          .textTheme
+          .copyWith(
+            bodyLarge: TextStyle(
+              fontSize: 20,
+              color: remainderColor(context, cart),
+            ),
+          )
+          .bodyLarge,
+    );
   }
 }
 
 class MyGridView extends StatelessWidget {
   final CartModel cart;
-  const MyGridView({super.key, required this.cart});
+  const MyGridView(BuildContext context, {super.key, required this.cart});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, cart, child) {
       return SizedBox(
-        height: 200,
+        height: MediaQuery.sizeOf(context).height * 0.8,
         child: GridView.count(
           crossAxisCount: 3,
           childAspectRatio: 2,
@@ -297,6 +298,15 @@ class CartModel extends ChangeNotifier {
       sum += item.cost;
     }
     return sum;
+  }
+
+  int activeItems() {
+    int n = 0;
+    for (final item in items) {
+      if (item.leave) continue;
+      n++;
+    }
+    return n;
   }
 
   add(String desc, cost) {
@@ -365,16 +375,23 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
   var outp = <Widget>[];
   for (final i in cart.items) {
     outp.add(
-      InkWell(
-        onTap: () {
-          i.toggle();
-          cart.repaint();
-        },
-        child: Card(
-          color: i.leave
-              ? Colors.red[50]
-              : Theme.of(context).colorScheme.surfaceContainer,
-          child: Text('${i.desc} ${i.leave}\n${i.cost}'),
+      Tooltip(
+        message: 'tap to remove from / return to cart\nlong-press to delete',
+        child: InkWell(
+          onTap: () {
+            i.toggle();
+            cart.repaint();
+          },
+          onLongPress: (){
+            cart.items.remove(i);
+            cart.repaint();
+          },
+          child: Card(
+            color: i.leave
+                ? Colors.red[50]
+                : Theme.of(context).colorScheme.surfaceContainer,
+            child: Text('${i.desc}\n${i.cost}'),
+          ),
         ),
       ),
     );
@@ -383,6 +400,9 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
 }
 
 Color remainderColor(BuildContext context, CartModel cart) {
+  if (cart.remainder() == null) {
+    return Theme.of(context).colorScheme.inverseSurface;
+  }
   if (cart.remainder()! < 0) {
     return Theme.of(context).colorScheme.error;
   }
