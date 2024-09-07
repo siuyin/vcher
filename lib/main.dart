@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Voucher Optimiser'),
+      home: const MyHomePage(title: 'Voucher'),
     );
   }
 }
@@ -73,15 +73,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: PopupMenuButton(
-          onSelected: (item) => onSelected(context, item),
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 0,
-              child: Text('Empty Cart'),
-            ),
-          ],
-        ),
+        leading: menu(context),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
@@ -109,7 +101,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void onSelected(context, item) {
+  PopupMenuButton<int> menu(BuildContext context) {
+    return PopupMenuButton(
+      onSelected: (item) => menuAction(context, item),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 0,
+          child: Text('Empty Cart'),
+        ),
+      ],
+    );
+  }
+
+  void menuAction(context, item) {
     switch (item) {
       case 0:
         _cart.empty();
@@ -124,50 +128,66 @@ class _MyHomePageState extends State<MyHomePage> {
     final itemController = TextEditingController();
     final costController = TextEditingController();
 
+    var itemField = TextField(
+      decoration: const InputDecoration(labelText: 'item'),
+      controller: itemController,
+    );
+
+    var costField = TextField(
+      decoration: const InputDecoration(labelText: 'cost'),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: const [
+        TextInputFormatter.withFunction(priceInputFormatter),
+      ],
+      controller: costController,
+    );
+
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'item'),
-              controller: itemController,
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'cost'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: const [
-                TextInputFormatter.withFunction(priceInputFormatter),
-              ],
-              controller: costController,
-            ),
-            Align(
-              alignment: AlignmentDirectional.bottomEnd,
-              child: SizedBox(
-                width: 168,
-                child: Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Close'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        cart.add(itemController.text, costController.text);
-                        itemController.text = '';
-                        costController.text = '';
-                        saveState();
-                      },
-                      child: const Text('Add item'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            itemField,
+            costField,
+            addItemControls(context, cart, itemController, costController),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Align addItemControls(
+      BuildContext context,
+      CartModel cart,
+      TextEditingController itemController,
+      TextEditingController costController) {
+
+    var closeButton = TextButton(
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: const Text('Close'),
+    );
+    
+    var addButton = TextButton(
+      onPressed: () {
+        cart.add(itemController.text, costController.text);
+        itemController.text = '';
+        costController.text = '';
+        saveState();
+      },
+      child: const Text('Add item'),
+    );
+
+    return Align(
+      alignment: AlignmentDirectional.bottomEnd,
+      child: SizedBox(
+        width: 168,
+        child: Row(
+          children: [
+            closeButton,
+            addButton,
           ],
         ),
       ),
