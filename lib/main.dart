@@ -151,14 +151,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        saveState();
                         Navigator.pop(context);
                       },
                       child: const Text('Close'),
                     ),
                     TextButton(
-                      onPressed: () =>
-                          cart.add(itemController.text, costController.text),
+                      onPressed: () {
+                        cart.add(itemController.text, costController.text);
+                        itemController.text = '';
+                        costController.text = '';
+                        saveState();
+                      },
                       child: const Text('Add item'),
                     ),
                   ],
