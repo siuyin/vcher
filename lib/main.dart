@@ -171,6 +171,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var addButton = TextButton(
       onPressed: () {
+        if (itemController.text.trim() == '' ||
+            costController.text.trim() == '') return;
+            
         cart.add(itemController.text, costController.text);
         itemController.text = '';
         costController.text = '';
@@ -382,7 +385,7 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
             i.toggle();
             cart.repaint();
           },
-          onLongPress: (){
+          onLongPress: () {
             cart.items.remove(i);
             cart.repaint();
           },
