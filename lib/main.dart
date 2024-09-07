@@ -379,13 +379,13 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
   for (final i in cart.items) {
     outp.add(
       Tooltip(
-        message: 'tap to remove from / return to cart\nlong-press to delete',
+        message: 'tap to remove from / return to cart\ndouble-tap to delete',
         child: InkWell(
           onTap: () {
             i.toggle();
             cart.repaint();
           },
-          onLongPress: () {
+          onDoubleTap: () {
             cart.items.remove(i);
             cart.repaint();
           },
