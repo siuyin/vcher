@@ -377,11 +377,19 @@ class ItemModel {
   }
 }
 
-TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
+TextEditingValue priceInputFormatterOld(TextEditingValue old, neu) {
   if (RegExp(r'^\d*\.?\d*$').hasMatch(neu.text)) {
     return neu;
   }
   return old;
+}
+
+TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
+  var n = neu.text.toString();
+  n = n.replaceAll('.', '');
+  final m = int.tryParse(n);
+  if (m == null) return old;
+  return TextEditingValue(text: (m * 0.01).toStringAsFixed(2));
 }
 
 List<Widget> itemWidgets(BuildContext context, CartModel cart) {

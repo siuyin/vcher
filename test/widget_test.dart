@@ -57,4 +57,11 @@ void main() {
     const delta=0.001;
     expect(ct.total(),closeTo(1.5, delta));
   });
+
+  test('priceInputFormatter',(){
+    expect(priceInputFormatter(const TextEditingValue(text:'0'), const TextEditingValue(text:'2')),equals(const TextEditingValue(text:'2')));
+    expect(priceInputFormatter(const TextEditingValue(text:'2'), const TextEditingValue(text:'2a')),equals(const TextEditingValue(text:'2')));
+    expect(priceInputFormatter(const TextEditingValue(text:'2'), const TextEditingValue(text:'2.')),equals(const TextEditingValue(text:'2.')));
+    expect(priceInputFormatter(const TextEditingValue(text:''), const TextEditingValue(text:'.')),equals(const TextEditingValue(text:'.')));
+  });
 }
