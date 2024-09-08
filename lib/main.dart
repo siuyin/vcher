@@ -128,9 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
     final itemController = TextEditingController();
     final costController = TextEditingController();
 
+    FocusNode itemFocusNode = FocusNode();
+
     var itemField = TextField(
       decoration: const InputDecoration(labelText: 'item'),
       controller: itemController,
+      focusNode: itemFocusNode,
+      autofocus: true,
     );
 
     var costField = TextField(
@@ -150,7 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             itemField,
             costField,
-            addItemControls(context, cart, itemController, costController),
+            addItemControls(
+                context, cart, itemController, itemFocusNode, costController),
           ],
         ),
       ),
@@ -161,6 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
       BuildContext context,
       CartModel cart,
       TextEditingController itemController,
+      FocusNode itemFocusNode,
       TextEditingController costController) {
     var closeButton = TextButton(
       onPressed: () {
@@ -173,10 +179,11 @@ class _MyHomePageState extends State<MyHomePage> {
       onPressed: () {
         if (itemController.text.trim() == '' ||
             costController.text.trim() == '') return;
-            
+
         cart.add(itemController.text, costController.text);
         itemController.text = '';
         costController.text = '';
+        itemFocusNode.requestFocus();
         saveState();
       },
       child: const Text('Add item'),
@@ -229,7 +236,9 @@ class Summary extends StatelessWidget {
 
   Text remainderText(CartModel cart, BuildContext context) {
     return Text(
-      '${cart.activeItems()} items: \$${cart.total()}: rem:${cart.remainder()?.toStringAsFixed(2) ?? ""}',
+      '${cart.activeItems()} '
+      'items: \$${cart.total().toStringAsFixed(2)}: '
+      'rem:${cart.remainder()?.toStringAsFixed(2) ?? ""}',
       style: Theme.of(context)
           .textTheme
           .copyWith(
@@ -323,6 +332,7 @@ class CartModel extends ChangeNotifier {
       item.cost = 0;
     }
     items.add(item);
+    items.sort((a, b) => b.cost.compareTo(a.cost));
 
     notifyListeners();
   }
