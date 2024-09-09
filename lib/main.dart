@@ -40,12 +40,15 @@ class _MyHomePageState extends State<MyHomePage> {
   final Future<SharedPreferencesWithCache> _prefs =
       SharedPreferencesWithCache.create(
     cacheOptions: const SharedPreferencesWithCacheOptions(
-      allowList: <String>{'val', 'items'},
+      allowList: <String>{'val', 'items', 'useImplicitDecimalPoint'},
     ),
   );
 
   final TextEditingController _valController = TextEditingController();
   late final CartModel _cart;
+
+  bool useImplicitDecimalPoint = false;
+  var priceInputFormatter = priceInputFormatterExplicitDecimal;
 
   @override
   void initState() {
@@ -59,6 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await prefs.setString('val', _valController.text);
     await prefs.setStringList('items', _cart.dump());
     _cart.setVal(_valController.text);
+    await prefs.setBool('useImplicitDecimalPoint', useImplicitDecimalPoint);
   }
 
   restoreState() async {
@@ -67,6 +71,13 @@ class _MyHomePageState extends State<MyHomePage> {
     _cart.setVal(_valController.text);
     _cart.itemStr = prefs.getStringList('items') ?? [];
     _cart.parseItemStr();
+    useImplicitDecimalPoint = prefs.getBool('useImplicitDecimalPoint') ?? false;
+    if (useImplicitDecimalPoint) {
+      priceInputFormatter = priceInputFormatterImplcitDecimal;
+    } else {
+      priceInputFormatter = priceInputFormatterExplicitDecimal;
+    }
+    setState(() {});
   }
 
   // Main widget build starts here.
@@ -109,6 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
           value: 0,
           child: Text('Empty Cart'),
         ),
+        const PopupMenuItem(
+          value: 1,
+          child: Text('ToggleImplicitDecimal'),
+        ),
       ],
     );
   }
@@ -118,6 +133,18 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         _cart.empty();
         saveState();
+        break;
+
+      case 1:
+        if (useImplicitDecimalPoint) {
+          useImplicitDecimalPoint = false;
+          priceInputFormatter = priceInputFormatterExplicitDecimal;
+        } else {
+          useImplicitDecimalPoint = true;
+          priceInputFormatter = priceInputFormatterImplcitDecimal;
+        }
+        saveState();
+        setState(() {});
         break;
     }
   }
@@ -140,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var costField = TextField(
       decoration: const InputDecoration(labelText: 'cost'),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: const [
+      inputFormatters: [
         TextInputFormatter.withFunction(priceInputFormatter),
       ],
       controller: costController,
@@ -213,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
         controller: _valController,
         onSubmitted: (_) => saveState(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: const [
+        inputFormatters: [
           TextInputFormatter.withFunction(priceInputFormatter),
         ],
       ),
@@ -377,14 +404,14 @@ class ItemModel {
   }
 }
 
-TextEditingValue priceInputFormatterOld(TextEditingValue old, neu) {
+TextEditingValue priceInputFormatterExplicitDecimal(TextEditingValue old, neu) {
   if (RegExp(r'^\d*\.?\d*$').hasMatch(neu.text)) {
     return neu;
   }
   return old;
 }
 
-TextEditingValue priceInputFormatter(TextEditingValue old, neu) {
+TextEditingValue priceInputFormatterImplcitDecimal(TextEditingValue old, neu) {
   var n = neu.text.toString();
   n = n.replaceAll('.', '');
   final m = int.tryParse(n);
