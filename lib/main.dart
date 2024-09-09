@@ -412,11 +412,17 @@ TextEditingValue priceInputFormatterExplicitDecimal(TextEditingValue old, neu) {
 }
 
 TextEditingValue priceInputFormatterImplcitDecimal(TextEditingValue old, neu) {
-  var n = neu.text.toString();
-  n = n.replaceAll('.', '');
-  final m = int.tryParse(n);
-  if (m == null) return old;
-  return TextEditingValue(text: (m * 0.01).toStringAsFixed(2));
+  String noDecimal = neu.text;
+  noDecimal = noDecimal.replaceAll('.', '');
+  var i = int.tryParse(noDecimal);
+  if (i == null) return old;
+  final outStr = (i * 0.01).toStringAsFixed(2);
+  return TextEditingValue(
+    text: outStr,
+    selection: TextSelection.collapsed(
+      offset: outStr.length,
+    ),
+  );
 }
 
 List<Widget> itemWidgets(BuildContext context, CartModel cart) {

@@ -58,4 +58,7 @@ void main() {
     expect(ct.total(),closeTo(1.5, delta));
   });
 
+test('implicit decimal',(){
+  
+});
 }
