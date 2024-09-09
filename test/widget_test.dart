@@ -45,20 +45,29 @@ void main() {
     expect(ct.remainder(), closeTo(10 - 4, eps));
   });
 
-
-  test('item add to cart',(){
+  test('item add to cart', () {
     var ct = CartModel();
-    ct.add('a','1.5');
+    ct.add('a', '1.5');
     final list = ct.dump();
 
     expect(list.length, equals(1));
-    expect(list[0],equals('a|1.50|false'));
+    expect(list[0], equals('a|1.50|false'));
 
-    const delta=0.001;
-    expect(ct.total(),closeTo(1.5, delta));
+    const delta = 0.001;
+    expect(ct.total(), closeTo(1.5, delta));
   });
 
-test('implicit decimal',(){
-  
-});
+  test('implicit decimal', () {
+    final dat = [
+      ['', '1', '0.01'],
+      ['0.01', '0.12', '0.12'],
+      ['0.123', '1.23', '1.23'],
+      ['1.23', '12.34', '12.34'],
+    ];
+    for (final d in dat) {
+      final o = priceInputFormatterImplcitDecimal(
+          TextEditingValue(text: d[0]), TextEditingValue(text: d[1]));
+      expect(o.text, equals(d[2]));
+    }
+  });
 }

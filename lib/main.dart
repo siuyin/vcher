@@ -444,7 +444,7 @@ List<Widget> itemWidgets(BuildContext context, CartModel cart) {
             color: i.leave
                 ? Colors.red[50]
                 : Theme.of(context).colorScheme.surfaceContainer,
-            child: Text('${i.desc}\n${i.cost}'),
+            child: Text('${i.desc}\n${i.cost.toStringAsFixed(2)}'),
           ),
         ),
       ),
