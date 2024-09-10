@@ -238,7 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
         decoration: const InputDecoration(labelText: 'Value'),
         style: Theme.of(context).textTheme.headlineSmall,
         controller: _valController,
-        onSubmitted: (_) => saveState(),
+        onChanged: (_)=>saveState(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
           TextInputFormatter.withFunction(priceInputFormatter),
