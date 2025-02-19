@@ -195,13 +195,6 @@ class _MyHomePageState extends State<MyHomePage> {
       TextEditingController itemController,
       FocusNode itemFocusNode,
       TextEditingController costController) {
-    var closeButton = TextButton(
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      child: const Text('Close'),
-    );
-
     var addButton = TextButton(
       onPressed: () {
         if (itemController.text.trim() == '' ||
@@ -212,6 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
         costController.text = '';
         itemFocusNode.requestFocus();
         saveState();
+        Navigator.pop(context);
       },
       child: const Text('Add item'),
     );
@@ -222,7 +216,6 @@ class _MyHomePageState extends State<MyHomePage> {
         width: 168,
         child: Row(
           children: [
-            closeButton,
             addButton,
           ],
         ),
@@ -238,7 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
         decoration: const InputDecoration(labelText: 'Value'),
         style: Theme.of(context).textTheme.headlineSmall,
         controller: _valController,
-        onChanged: (_)=>saveState(),
+        onChanged: (_) => saveState(),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
           TextInputFormatter.withFunction(priceInputFormatter),
